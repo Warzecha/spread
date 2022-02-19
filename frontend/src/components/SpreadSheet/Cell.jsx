@@ -13,9 +13,17 @@ const Cell = props => {
         data,
         onSelect,
         onActivate,
+        columnWidth,
+        activeCellValue,
+        setActiveCellValue
     } = props;
 
-    const classes = useStyles({selected, active});
+    const {
+        value = '',
+        formula = ''
+    } = data || {};
+
+    const classes = useStyles({selected, active, columnWidth});
 
     const rootRef = React.useRef(null);
 
@@ -59,23 +67,32 @@ const Cell = props => {
             onMouseDown={handleMouseDown}
             tabIndex={0}
         >
-            {/*<DataViewer*/}
-            {/*    row={row}*/}
-            {/*    column={column}*/}
-            {/*    cell={data}*/}
-            {/*    formulaParser={formulaParser}*/}
-            {/*/>*/}
+            {active ? <input value={activeCellValue} onChange={e => setActiveCellValue(e.target.value)}
+                             className={classes.cellInput} autoFocus/> : <span className={classes.cellValue}>{formula || value}</span>}
         </td>
     );
 };
 
 const useStyles = makeStyles({
-    cell: ({selected, active}) => ({
-        border: '1px solid #888',
-        borderCollapse: 'collapse',
-    })
-
-
+    cell: ({selected, active, columnWidth}) => ({
+        border: (selected || active) ? '2px solid #4371ff' : '1px solid #666',
+        width: columnWidth,
+        backgroundColor: selected ? 'rgba(67,113,255,0.2)' : 'transparent'
+    }),
+    cellValue: ({columnWidth}) => ({
+        maxWidth: columnWidth,
+        display: 'block',
+        wordWrap: 'break-word',
+        fontSize: 12
+    }),
+    cellInput: {
+        width: '100%',
+        padding: 0,
+        borderWidth: 0,
+        border: 'none',
+        outline: 'none',
+        fontSize: 12
+    }
 });
 
 Cell.propTypes = {};
