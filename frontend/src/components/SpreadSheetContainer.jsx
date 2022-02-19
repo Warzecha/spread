@@ -6,7 +6,7 @@ const SpreadSheetContainer = () => {
     const [fileName, setFileName] = useState('File name');
 
     const [rowCount, setRowCount] = useState(20);
-    const [colCount, setColCount] = useState(10);
+    const [colCount, setColCount] = useState(30);
 
     const [data, setData] = useState([]);
 
@@ -16,7 +16,9 @@ const SpreadSheetContainer = () => {
         for (let i = 0; i < rowCount; i++) {
             const row = [];
             for (let j = 0; j < colCount; j++) {
-                row.push(j);
+                row.push({
+                    value: j
+                });
             }
             tableData.push(row);
         }
@@ -29,6 +31,7 @@ const SpreadSheetContainer = () => {
         <SpreadSheetView fileName={fileName}
                          setFileName={setFileName}
                          data={data}
+                         setData={setData}
                          rowCount={rowCount}
                          colCount={colCount}
 

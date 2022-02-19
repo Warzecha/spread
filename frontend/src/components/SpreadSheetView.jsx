@@ -2,22 +2,16 @@ import React from 'react';
 import DropDownMenu from './DropDownMenu';
 import {makeStyles, styled} from '@mui/styles';
 import {Divider, InputBase, TextField} from '@mui/material';
-
-
-const FileNameTextField = styled((props) => (
-    <TextField InputProps={{disableUnderline: true}} {...props} />))(({theme}) => ({
-    '& .MuiOutlinedInput-root': {
-        border: '3px solid red', borderRadius: 4, '&:hover': {
-            border: '3px solid green',
-        }, '&.Mui-focused': {
-            border: '3px solid purple',
-        },
-    },
-}));
+import SpreadSheetTable from './SpreadSheet/SpreadSheetTable';
 
 const SpreadSheetView = (props) => {
     const {
-        fileName, setFileName, data
+        fileName,
+        setFileName,
+        data,
+        setData,
+        rowCount,
+        colCount
     } = props;
 
     const classes = useStyles();
@@ -83,19 +77,13 @@ const SpreadSheetView = (props) => {
         <div>
 
 
-            <table>
-                <thead>
-                    {data[0].map((_, index) => <th>{`#${index+1}`}</th>)}
-                </thead>
-                <tbody>
-                {data.map((row, rowIndex) => {
+            {data && <SpreadSheetTable
+                rowCount={rowCount}
+                colCount={colCount}
+                data={data}
+                setData={setData}
 
-                    return (<tr key={`row-${rowIndex}`}>
-                        {row.map((value, colIndex) => <td key={`cell-${rowIndex}-${colIndex}`}>{value}</td>)}
-                    </tr>);
-                })}
-                </tbody>
-            </table>
+            />}
         </div>
 
     </div>);
