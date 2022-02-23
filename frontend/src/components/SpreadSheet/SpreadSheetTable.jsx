@@ -1,10 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import Row from './Row';
 import Cell from './Cell';
 import {makeStyles} from '@mui/styles';
 import {getColumnLabel} from './utils';
-import {Button, Divider, IconButton} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import {Divider, IconButton} from '@mui/material';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import {useDispatch, useSelector} from 'react-redux';
@@ -19,20 +18,13 @@ const cellsEqual = (cell1, cell2) => {
         return false;
     } else {
         return cell1.row === cell2.row && cell1.col === cell2.col;
-
     }
-
 };
 
 const SpreadSheetTable = (props) => {
     const {
         colCount
     } = props;
-
-    // const [activeCell, setActiveCell] = useState(null);
-    // const [activeCellValue, setActiveCellValue] = useState('');
-
-    // const [selectedCellList, setSelectedCellList] = useState([]);
 
     const dispatch = useDispatch();
 
@@ -42,10 +34,6 @@ const SpreadSheetTable = (props) => {
         activeCellValue,
         selectedCells
     } = useSelector(state => state.spreadsheet);
-
-    const setData = () => {
-        console.log('Set data');
-    };
 
     const setActiveCellValue = (newValue) => {
         dispatch(activeCellValueModified(newValue));
@@ -73,9 +61,7 @@ const SpreadSheetTable = (props) => {
                     newSelection.push({row: i, col: j});
                 }
             }
-
             dispatch(setSelectedCells(newSelection));
-            // setSelectedCellList(newSelection);
         }
     };
 
