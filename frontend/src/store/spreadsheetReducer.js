@@ -7,6 +7,9 @@ export const activeCellValueModified = createAction('spreadsheet/activeCellValue
 export const setSelectedCells = createAction('spreadsheet/setSelectedCells');
 export const addSelectedCell = createAction('spreadsheet/addSelectedCell');
 
+export const onDragStart = createAction('spreadsheet/onDragStart');
+export const onDragEnd = createAction('spreadsheet/onDragEnd');
+
 export const INITIAL_STATE = {
     activeCellAddress: {row: 0, col: 0},
     activeCellValue: '',
@@ -57,6 +60,14 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
     builder.addCase(addSelectedCell, ((state, {payload}) => {
         state.selectedCells.push(payload);
     }))
+
+    builder.addCase(onDragStart, (state, action) => {
+        state.dragging = true;
+    })
+
+    builder.addCase(onDragEnd, (state, action) => {
+        state.dragging = false;
+    })
 }));
 
 export default spreadsheetReducer;

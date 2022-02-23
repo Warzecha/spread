@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import Row from './Row';
 import Cell from './Cell';
 import {makeStyles} from '@mui/styles';
@@ -7,7 +7,13 @@ import {Divider, IconButton} from '@mui/material';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import {useDispatch, useSelector} from 'react-redux';
-import {activateCell, activeCellValueModified, addSelectedCell, setSelectedCells} from '../../store/spreadsheetReducer';
+import {
+    activateCell,
+    activeCellValueModified,
+    addSelectedCell, onDragEnd,
+    onDragStart,
+    setSelectedCells
+} from '../../store/spreadsheetReducer';
 
 const DEFAULT_COLUMN_WIDTH = 80;
 
@@ -32,7 +38,8 @@ const SpreadSheetTable = (props) => {
         data,
         activeCellAddress,
         activeCellValue,
-        selectedCells
+        selectedCells,
+        dragging
     } = useSelector(state => state.spreadsheet);
 
     const setActiveCellValue = (newValue) => {
@@ -47,7 +54,7 @@ const SpreadSheetTable = (props) => {
         dispatch(addSelectedCell({row, col}));
     };
 
-    const handleCellShiftClicked = (targetRow, targetCol) => {
+    const handleCellRangeSelected = (targetRow, targetCol) => {
         if (activeCellAddress) {
             let newSelection = [];
             const fromRow = Math.min(activeCellAddress.row, targetRow);
@@ -64,6 +71,15 @@ const SpreadSheetTable = (props) => {
             dispatch(setSelectedCells(newSelection));
         }
     };
+
+    const handleDragStart = useCallback(() => {
+        dispatch(onDragStart());
+    }, [])
+
+    const handleDragEnd = useCallback(() => {
+        dispatch(onDragEnd());
+        // handleCellRangeSelected(row, col);
+    }, [])
 
     const classes = useStyles();
 
@@ -121,16 +137,18 @@ const SpreadSheetTable = (props) => {
                         row: rowIndex, col: columnIndex
                     }))}
                     active={activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex}
-                    dragging={false}
+                    dragging={dragging}
                     mode={'view'}
                     data={cell}
                     onSelect={handleCellSelected}
-                    onCellShiftClicked={handleCellShiftClicked}
+                    onCellShiftClicked={handleCellRangeSelected}
                     onActivate={handleActivate}
                     columnWidth={DEFAULT_COLUMN_WIDTH}
                     activeCellValue={activeCellValue}
                     setActiveCellValue={setActiveCellValue}
                     key={`cell-${rowIndex}-${columnIndex}`}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
                 />)}
             </Row>)}
             </tbody>

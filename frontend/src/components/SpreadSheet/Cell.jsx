@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {makeStyles} from '@mui/styles';
+import {onDragStart} from '../../store/spreadsheetReducer';
 
 const Cell = props => {
     const {
@@ -16,7 +17,9 @@ const Cell = props => {
         onActivate,
         columnWidth,
         activeCellValue,
-        setActiveCellValue
+        setActiveCellValue,
+        onDragStart,
+        onDragEnd
     } = props;
 
     const {
@@ -31,15 +34,13 @@ const Cell = props => {
     const rootRef = React.useRef(null);
 
     const handleMouseDown = React.useCallback(event => {
-            if (mode === "view") {
-                // setCellDimensions(point, getOffsetRect(event.currentTarget));
-                if (event.shiftKey) {
-                    onCellShiftClicked(row, column);
-                } else if (event.ctrlKey || event.metaKey) {
-                    onSelect(row, column);
-                }  else {
-                    onActivate(row, column);
-                }
+            if (event.shiftKey) {
+                onCellShiftClicked(row, column);
+            } else if (event.ctrlKey || event.metaKey) {
+                onSelect(row, column);
+            } else {
+                onActivate(row, column);
+                onDragStart()
             }
         },
         [mode, onSelect, onActivate, row, column]
@@ -48,7 +49,8 @@ const Cell = props => {
     const handleMouseOver = React.useCallback(event => {
             if (dragging) {
                 // setCellDimensions(point, getOffsetRect(event.currentTarget));
-                onSelect(row, column);
+                // onSelect(row, column);
+                onCellShiftClicked(row, column)
             }
         },
         [onSelect, dragging, row, column]
@@ -58,7 +60,7 @@ const Cell = props => {
         if (active) {
             inputRef.current.focus();
         }
-    }, [active])
+    }, [active]);
 
     // React.useEffect(() => {
     //     const root = rootRef.current;
@@ -76,6 +78,7 @@ const Cell = props => {
             className={classes.cell}
             onMouseOver={handleMouseOver}
             onMouseDown={handleMouseDown}
+            onMouseUp={onDragEnd}
             tabIndex={0}
         >
             <div className={classes.innerCell}>
