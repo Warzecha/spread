@@ -8,7 +8,6 @@ const SpreadSheetView = (props) => {
     const {
         fileName,
         setFileName,
-        data,
         setData,
         rowCount,
         colCount
@@ -77,13 +76,11 @@ const SpreadSheetView = (props) => {
         <div>
 
 
-            {data && <SpreadSheetTable
+            <SpreadSheetTable
                 rowCount={rowCount}
                 colCount={colCount}
-                data={data}
                 setData={setData}
-
-            />}
+            />
         </div>
 
     </div>);

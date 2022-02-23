@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import SpreadSheetView from './SpreadSheetView';
+import {useDispatch} from 'react-redux';
+import {setDataAction} from '../store/spreadsheetReducer';
 
 const SpreadSheetContainer = () => {
 
@@ -9,6 +11,7 @@ const SpreadSheetContainer = () => {
     const [colCount, setColCount] = useState(30);
 
     const [data, setData] = useState([]);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const tableData = [];
@@ -24,13 +27,15 @@ const SpreadSheetContainer = () => {
         }
 
         setData(tableData);
+        dispatch(setDataAction(tableData));
+
+
 
     }, []);
 
     return (
         <SpreadSheetView fileName={fileName}
                          setFileName={setFileName}
-                         data={data}
                          setData={setData}
                          rowCount={rowCount}
                          colCount={colCount}
