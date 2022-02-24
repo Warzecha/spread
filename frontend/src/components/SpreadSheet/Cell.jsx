@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {makeStyles} from '@mui/styles';
 import {onDragStart} from '../../store/spreadsheetReducer';
+import {InputBase} from '@mui/material';
 
 const Cell = props => {
     const {
@@ -82,7 +83,7 @@ const Cell = props => {
             tabIndex={0}
         >
             <div className={classes.innerCell}>
-                {active ? <input value={activeCellValue}
+                {active ? <InputBase value={activeCellValue}
                                  onChange={e => setActiveCellValue(e.target.value)}
                                  className={classes.cellInput}
                                  ref={inputRef}
@@ -99,6 +100,7 @@ const useStyles = makeStyles({
         border: '1px solid #AAA',
         // border: (selected || active) ? '1px solid #4371ff' : '1px solid #666',
         width: columnWidth,
+        minWidth: columnWidth,
         backgroundColor: selected ? 'rgba(67,113,255,0.2)' : 'transparent',
         padding: 0
     }),

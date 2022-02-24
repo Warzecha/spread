@@ -18,6 +18,8 @@ export const INITIAL_STATE = {
     // hasPasted: false,
     // cut: false,
     dragging: false,
+    rowCount: 100,
+    columnCount: 26,
     data: [],
     selectedCells: [],
     // copied: [],
@@ -29,7 +31,26 @@ export const INITIAL_STATE = {
 const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
 
     builder.addCase(setDataAction, (state, {payload}) => {
-        state.data = payload;
+
+        const filledData = [];
+
+        for (let i = 0; i < state.rowCount; i++) {
+
+            const row = [];
+
+            for (let j = 0; j < state.columnCount; j++) {
+                if (payload && payload[i] && payload[i][j]) {
+                    row.push(payload[i][j]);
+                } else {
+                    row.push({
+                        value: ''
+                    });
+                }
+            }
+            filledData.push(row);
+        }
+
+        state.data = filledData;
     });
 
     builder.addCase(activateCell, (state, {payload}) => {

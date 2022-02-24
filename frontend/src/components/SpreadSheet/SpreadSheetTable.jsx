@@ -3,9 +3,6 @@ import Row from './Row';
 import Cell from './Cell';
 import {makeStyles} from '@mui/styles';
 import {getColumnLabel} from './utils';
-import {Divider, IconButton} from '@mui/material';
-import UndoIcon from '@mui/icons-material/Undo';
-import RedoIcon from '@mui/icons-material/Redo';
 import {useDispatch, useSelector} from 'react-redux';
 import {
     activateCell,
@@ -27,11 +24,7 @@ const cellsEqual = (cell1, cell2) => {
     }
 };
 
-const SpreadSheetTable = (props) => {
-    const {
-        colCount
-    } = props;
-
+const SpreadSheetTable = () => {
     const dispatch = useDispatch();
 
     const {
@@ -39,22 +32,24 @@ const SpreadSheetTable = (props) => {
         activeCellAddress,
         activeCellValue,
         selectedCells,
-        dragging
+        dragging,
+        columnCount,
+        rowCount
     } = useSelector(state => state.spreadsheet);
 
-    const setActiveCellValue = (newValue) => {
+    const setActiveCellValue = useCallback((newValue) => {
         dispatch(activeCellValueModified(newValue));
-    };
+    }, [dispatch]);
 
-    const handleActivate = (row, col) => {
+    const handleActivate = useCallback((row, col) => {
         dispatch(activateCell({row, col}));
-    };
+    }, [dispatch]);
 
-    const handleCellSelected = (row, col) => {
+    const handleCellSelected = useCallback((row, col) => {
         dispatch(addSelectedCell({row, col}));
-    };
+    }, [dispatch]);
 
-    const handleCellRangeSelected = (targetRow, targetCol) => {
+    const handleCellRangeSelected = useCallback((targetRow, targetCol) => {
         if (activeCellAddress) {
             let newSelection = [];
             const fromRow = Math.min(activeCellAddress.row, targetRow);
@@ -70,107 +65,87 @@ const SpreadSheetTable = (props) => {
             }
             dispatch(setSelectedCells(newSelection));
         }
-    };
+    }, [dispatch, activeCellAddress]);
 
     const handleDragStart = useCallback(() => {
         dispatch(onDragStart());
-    }, [])
+    }, [dispatch]);
 
     const handleDragEnd = useCallback(() => {
         dispatch(onDragEnd());
-        // handleCellRangeSelected(row, col);
-    }, [])
+    }, [dispatch]);
 
     const classes = useStyles();
 
-    return (<div>
+    return (
+        <div className={classes.tableContainer}>
+            <table className={classes.table}>
 
-        <div className={classes.toolsRibbon}>
+                <thead>
+                <tr className={classes.headerRow}>
+                    <th/>
 
-            <IconButton size={'small'}>
-                <UndoIcon/>
-            </IconButton>
-            <IconButton size={'small'}>
-                <RedoIcon/>
-            </IconButton>
+                    {Array.from({length: columnCount}, (_, i) => i)
+                        .map((_, i) => <th key={`column-${i}`}
+                                           className={classes.columnHeader}>{getColumnLabel(i)}</th>)}
+                </tr>
 
-        </div>
+                </thead>
 
-        <Divider/>
-
-
-        <div className={classes.activeCellDetailsBar}>
-                <span className={classes.activeCellAddress}>
-                    {activeCellAddress ? `${getColumnLabel(activeCellAddress.col)}${activeCellAddress.row + 1}` : '-'}
-                </span>
-
-            <Divider orientation={'vertical'} flexItem/>
-
-            <input value={activeCellValue}
-                   onChange={e => setActiveCellValue(e.target.value)}
-                   className={classes.activeCellInput}
-                   autoFocus
-            />
-
-        </div>
-
-        <Divider/>
-
-        <table className={classes.table}>
-
-            <thead>
-            <tr>
-                <th/>
-
-                {Array.from({length: colCount}, (_, i) => i)
-                    .map((_, i) => <th key={`column-${i}`}>{getColumnLabel(i)}</th>)}
-            </tr>
-
-            </thead>
-
-            <tbody>
-            {data.map((cells, rowIndex) => <Row row={rowIndex} key={`row-${rowIndex}`}>
-                {cells.map((cell, columnIndex) => <Cell
-                    row={rowIndex}
-                    column={columnIndex}
-                    selected={!!selectedCells.find(cell => cellsEqual(cell, {
-                        row: rowIndex, col: columnIndex
-                    }))}
-                    active={activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex}
-                    dragging={dragging}
-                    mode={'view'}
-                    data={cell}
-                    onSelect={handleCellSelected}
-                    onCellShiftClicked={handleCellRangeSelected}
-                    onActivate={handleActivate}
-                    columnWidth={DEFAULT_COLUMN_WIDTH}
-                    activeCellValue={activeCellValue}
-                    setActiveCellValue={setActiveCellValue}
-                    key={`cell-${rowIndex}-${columnIndex}`}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                />)}
-            </Row>)}
-            </tbody>
-
-
-        </table>
-
-    </div>);
+                <tbody className={classes.tableBody}>
+                {data.map((cells, rowIndex) => <Row row={rowIndex} key={`row-${rowIndex}`}>
+                    {cells.map((cell, columnIndex) => <Cell
+                        row={rowIndex}
+                        column={columnIndex}
+                        selected={!!selectedCells.find(cell => cellsEqual(cell, {
+                            row: rowIndex, col: columnIndex
+                        }))}
+                        active={activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex}
+                        dragging={dragging}
+                        mode={'view'}
+                        data={cell}
+                        onSelect={handleCellSelected}
+                        onCellShiftClicked={handleCellRangeSelected}
+                        onActivate={handleActivate}
+                        columnWidth={DEFAULT_COLUMN_WIDTH}
+                        activeCellValue={activeCellValue}
+                        setActiveCellValue={setActiveCellValue}
+                        key={`cell-${rowIndex}-${columnIndex}`}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                    />)}
+                </Row>)}
+                </tbody>
+            </table>
+        </div>);
 };
 
 const useStyles = makeStyles({
+    tableContainer: {
+        width: 'calc(100vw - 80px)',
+        marginLeft: 84,
+        overflowX: 'scroll',
+        overflowY: 'scroll'
+    },
     table: {
         // border: '1px solid #888',
-        borderCollapse: 'collapse', tableLayout: 'fixed'
-    }, toolsRibbon: {
-        display: 'flex', paddingLeft: 8, paddingRight: 8,
-    }, activeCellDetailsBar: {
-        display: 'flex',
-    }, activeCellAddress: {
-        width: 48, textAlign: 'center', fontSize: 14
-    }, activeCellInput: {
-        flex: 1, borderWidth: 0, border: 'none', outline: 'none', fontSize: 14,
+        borderCollapse: 'collapse',
+        tableLayout: 'fixed',
+    },
+    tableBody: {
+        marginLeft: 80,
+    },
+    columnHeader: {
+        width: 80,
+        minWidth: 80
+    },
+    headerRow: {
+        position: 'fixed',
+        left: 80,
+        top: 'auto',
+        border: '1px solid #AAA',
+        backgroundColor: '#EEE',
+        overflowX: 'scroll'
     }
 });
 
