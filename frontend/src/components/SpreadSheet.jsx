@@ -53,7 +53,8 @@ const SpreadSheet = () => {
 
 const useStyles = makeStyles(theme => ({
     root: {
-        background: theme.palette.background.default
+        background: theme.palette.background.default,
+        color: theme.palette.text.primary
     },
     fixedToolbar: {
         position: 'fixed',

@@ -1,77 +1,94 @@
-import React, {useEffect, useRef} from 'react';
-import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {makeStyles} from '@mui/styles';
-import {onDragStart} from '../../store/spreadsheetReducer';
 import {InputBase} from '@mui/material';
+import {useDispatch, useSelector} from 'react-redux';
+import {cellsEqual, selectCellData} from './utils';
+import {
+    activateCell,
+    activeCellValueModified,
+    addSelectedCell,
+    cellShiftClicked, onDragEnd,
+    onDragStart
+} from '../../store/spreadsheetReducer';
+import EditCellComponent from './EditCellComponent';
 
 const Cell = props => {
     const {
-        row,
-        column,
-        selected,
-        active,
-        dragging,
-        mode,
-        data,
-        onSelect,
-        onCellShiftClicked,
-        onActivate,
+        rowIndex,
+        columnIndex,
         columnWidth,
-        activeCellValue,
-        setActiveCellValue,
-        onDragStart,
-        onDragEnd
     } = props;
+
+    const active = useSelector(state => {
+        const {
+            activeCellAddress
+        } = state.spreadsheet;
+
+        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex
+    })
+
+    const {
+        selectedCells,
+        dragging,
+    } = useSelector(state => state.spreadsheet);
+
+    const cellData = useSelector(selectCellData(rowIndex, columnIndex));
 
     const {
         value = '',
         formula = ''
-    } = data || {};
+    } = cellData || {};
 
-    const inputRef = useRef(null);
+    const dispatch = useDispatch();
+
+    const selected = useMemo(() => {
+        return !!selectedCells.find(cell => cellsEqual(cell, {
+            row: rowIndex, col: columnIndex
+        }))
+    }, [selectedCells, rowIndex, columnIndex])
+
+    const handleActivate = useCallback((row, col) => {
+        dispatch(activateCell({row, col}));
+    }, [dispatch]);
+
+    const handleCellSelected = useCallback((row, col) => {
+        dispatch(addSelectedCell({row, col}));
+    }, [dispatch]);
+
+    const handleCellRangeSelected = useCallback((row, col) => {
+        dispatch(cellShiftClicked({row, col}));
+    }, [dispatch]);
 
     const classes = useStyles({selected, active, columnWidth});
 
     const rootRef = React.useRef(null);
 
+    const handleDragEnd = useCallback(() => {
+        dispatch(onDragEnd());
+    }, [dispatch]);
+
     const handleMouseDown = React.useCallback(event => {
             if (event.shiftKey) {
-                onCellShiftClicked(row, column);
+                handleCellRangeSelected(rowIndex, columnIndex);
             } else if (event.ctrlKey || event.metaKey) {
-                onSelect(row, column);
+                handleCellSelected(rowIndex, columnIndex);
             } else {
-                onActivate(row, column);
-                onDragStart()
+                handleActivate(rowIndex, columnIndex);
+                dispatch(onDragStart());
             }
         },
-        [mode, onSelect, onActivate, row, column]
+        [handleActivate, rowIndex, columnIndex]
     );
 
-    const handleMouseOver = React.useCallback(event => {
+    const handleMouseOver = React.useCallback(() => {
             if (dragging) {
-                // setCellDimensions(point, getOffsetRect(event.currentTarget));
-                // onSelect(row, column);
-                onCellShiftClicked(row, column)
+                handleCellRangeSelected(rowIndex, columnIndex)
             }
         },
-        [onSelect, dragging, row, column]
+        [dragging, rowIndex, columnIndex, handleCellRangeSelected]
     );
 
-    useEffect(() => {
-        if (active) {
-            inputRef.current.focus();
-        }
-    }, [active]);
 
-    // React.useEffect(() => {
-    //     const root = rootRef.current;
-    //     if (selected && root) {
-    //         // setCellDimensions(point, getOffsetRect(root));
-    //     }
-    //     if (root && active && mode === "view") {
-    //         root.focus();
-    //     }
-    // }, [setCellDimensions, selected, active, mode, point]);
 
     return (
         <td
@@ -79,15 +96,11 @@ const Cell = props => {
             className={classes.cell}
             onMouseOver={handleMouseOver}
             onMouseDown={handleMouseDown}
-            onMouseUp={onDragEnd}
+            onMouseUp={handleDragEnd}
             tabIndex={0}
         >
             <div className={classes.innerCell}>
-                {active ? <InputBase value={activeCellValue}
-                                 onChange={e => setActiveCellValue(e.target.value)}
-                                 className={classes.cellInput}
-                                 ref={inputRef}
-                    /> :
+                {active ? <EditCellComponent/> :
                     <span className={classes.cellValue}>{formula || value}</span>}
             </div>
 
@@ -96,15 +109,14 @@ const Cell = props => {
 };
 
 const useStyles = makeStyles({
-    cell: ({selected, active, columnWidth}) => ({
+    cell: ({selected, columnWidth}) => ({
         border: '1px solid #AAA',
-        // border: (selected || active) ? '1px solid #4371ff' : '1px solid #666',
         width: columnWidth,
         minWidth: columnWidth,
         backgroundColor: selected ? 'rgba(67,113,255,0.2)' : 'transparent',
         padding: 0
     }),
-    innerCell: ({selected, active, columnWidth}) => ({
+    innerCell: ({active}) => ({
         border: active ? '2px solid #4371ff' : '2px solid transparent',
         padding: 2,
         margin: -1,
@@ -115,7 +127,7 @@ const useStyles = makeStyles({
         maxWidth: columnWidth,
         display: 'block',
         wordWrap: 'break-word',
-        fontSize: 12,
+        fontSize: 16,
         userSelect: 'none',
         cursor: 'default'
 
@@ -126,7 +138,7 @@ const useStyles = makeStyles({
         borderWidth: 0,
         border: 'none',
         outline: 'none',
-        fontSize: 12,
+        // fontSize: 14,
         height: 15
     }
 });

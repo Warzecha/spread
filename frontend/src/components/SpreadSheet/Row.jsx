@@ -1,13 +1,24 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {makeStyles} from '@mui/styles';
+import Cell from './Cell';
 
-const Row = ({row, children}) => {
+const Row = ({rowIndex, columnCount}) => {
     const classes = useStyles();
+
     return (
         <tr className={classes.row}>
-            <th className={classes.headCol}>{row + 1}</th>
-            {children}
+            <th className={classes.headCol}>{rowIndex + 1}</th>
+
+            {
+                Array.from({length: columnCount}, (_, i) => i)
+                    .map((_, columnIndex) => <Cell
+                        rowIndex={rowIndex}
+                        columnIndex={columnIndex}
+                        columnWidth={80}
+                        key={`cell-${rowIndex}-${columnIndex}`}
+
+                    />)}
+
         </tr>
     );
 };
@@ -17,12 +28,12 @@ const useStyles = makeStyles({
         height: 22
     },
     headCol: {
-        position: 'absolute',
+        // position: 'absolute',
         width: 80,
         left: 0,
         top: 'auto',
         border: '1px solid #AAA',
-        backgroundColor: '#EEE'
+        backgroundColor: '#EEE',
     }
 });
 

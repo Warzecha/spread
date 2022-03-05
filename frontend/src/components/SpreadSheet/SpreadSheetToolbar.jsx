@@ -99,7 +99,9 @@ const SpreadSheetToolbar = (props) => {
                 <InputBase
                     value={activeCellValue}
                     onChange={e => setActiveCellValue(e.target.value)}
-                    className={classes.activeCellInput}
+                    classes={{
+                        root: classes.activeCellInput,
+                    }}
                     autoFocus
                 />
 
@@ -134,12 +136,16 @@ const useStyles = makeStyles({
     },
     activeCellDetailsBar: {
         display: 'flex',
+        alignItems: 'center'
     },
     activeCellAddress: {
-        width: 48, textAlign: 'center', fontSize: 14
+        width: 48,
+        textAlign: 'center',
+        verticalAlign: 'center',
+        fontSize: 16
     },
     activeCellInput: {
-        flex: 1, borderWidth: 0, border: 'none', outline: 'none', fontSize: 14,
+        marginLeft: 10
     },
 });
 
