@@ -1,18 +1,16 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import Row from './Row';
 import {makeStyles} from '@mui/styles';
 import {getColumnLabel} from './utils';
 import {useDispatch, useSelector} from 'react-redux';
+import {onDragStart} from '../../store/spreadsheetReducer';
 
 const DEFAULT_COLUMN_WIDTH = 80;
 
 const SpreadSheetTable = () => {
-    const dispatch = useDispatch();
 
-    const {
-        rowCount,
-        columnCount,
-    } = useSelector(state => state.spreadsheet);
+    const rowCount = useSelector(state => state.spreadsheet.rowCount);
+    const columnCount = useSelector(state => state.spreadsheet.columnCount);
 
     const classes = useStyles();
 
@@ -37,7 +35,8 @@ const SpreadSheetTable = () => {
                             rowIndex={rowIndex}
                             key={`row-${rowIndex}`}
                             columnCount={columnCount}
-                        />)}
+                        />)
+                }
                 </tbody>
             </table>
         </div>);

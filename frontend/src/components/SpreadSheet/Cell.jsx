@@ -1,13 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {makeStyles} from '@mui/styles';
-import {InputBase} from '@mui/material';
 import {useDispatch, useSelector} from 'react-redux';
 import {cellsEqual, selectCellData} from './utils';
 import {
     activateCell,
-    activeCellValueModified,
     addSelectedCell,
-    cellShiftClicked, onDragEnd,
+    cellShiftClicked, onCellHovered, onDragEnd,
     onDragStart
 } from '../../store/spreadsheetReducer';
 import EditCellComponent from './EditCellComponent';
@@ -27,10 +25,14 @@ const Cell = props => {
         return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex
     })
 
-    const {
-        selectedCells,
-        dragging,
-    } = useSelector(state => state.spreadsheet);
+    // const {selectedCells} = useSelector(state => state.spreadsheet);
+    const selected = useSelector(state => {
+        const {selectedCells = []} = state.spreadsheet;
+
+        return !!selectedCells.find(cell => cellsEqual(cell, {
+            row: rowIndex, col: columnIndex
+        }))
+    });
 
     const cellData = useSelector(selectCellData(rowIndex, columnIndex));
 
@@ -40,12 +42,6 @@ const Cell = props => {
     } = cellData || {};
 
     const dispatch = useDispatch();
-
-    const selected = useMemo(() => {
-        return !!selectedCells.find(cell => cellsEqual(cell, {
-            row: rowIndex, col: columnIndex
-        }))
-    }, [selectedCells, rowIndex, columnIndex])
 
     const handleActivate = useCallback((row, col) => {
         dispatch(activateCell({row, col}));
@@ -58,10 +54,6 @@ const Cell = props => {
     const handleCellRangeSelected = useCallback((row, col) => {
         dispatch(cellShiftClicked({row, col}));
     }, [dispatch]);
-
-    const classes = useStyles({selected, active, columnWidth});
-
-    const rootRef = React.useRef(null);
 
     const handleDragEnd = useCallback(() => {
         dispatch(onDragEnd());
@@ -81,20 +73,22 @@ const Cell = props => {
     );
 
     const handleMouseOver = React.useCallback(() => {
-            if (dragging) {
-                handleCellRangeSelected(rowIndex, columnIndex)
-            }
+            dispatch(onCellHovered({row: rowIndex, col: columnIndex}))
         },
-        [dragging, rowIndex, columnIndex, handleCellRangeSelected]
+        [rowIndex, columnIndex, dispatch]
     );
 
+    const classes = useStyles({selected, active, columnWidth});
 
+    // useEffect(() => {
+    //     console.debug("something changed!!!")
+    // }, [])
 
     return (
         <td
-            ref={rootRef}
+            // ref={rootRef}
             className={classes.cell}
-            onMouseOver={handleMouseOver}
+            onMouseEnter={handleMouseOver}
             onMouseDown={handleMouseDown}
             onMouseUp={handleDragEnd}
             tabIndex={0}

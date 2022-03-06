@@ -10,6 +10,20 @@ export const addSelectedCell = createAction('spreadsheet/addSelectedCell');
 export const onDragStart = createAction('spreadsheet/onDragStart');
 export const onDragEnd = createAction('spreadsheet/onDragEnd');
 export const cellShiftClicked = createAction('spreadsheet/cellShiftClicked');
+export const onCellHovered = createAction('spreadsheet/onCellHovered');
+
+const getSelectionFromRange = (startRow, startCol, targetRow, targetCol) => {
+    let newSelection = [];
+    const [fromRow, toRow] = [startRow, targetRow].sort();
+    const [fromCol, toCol] = [startCol, targetCol].sort();
+    for (let i = fromRow; i <= toRow; i++) {
+        for (let j = fromCol; j <= toCol; j++) {
+            newSelection.push({row: i, col: j});
+        }
+    }
+
+    return newSelection;
+};
 
 export const INITIAL_STATE = {
     activeCellAddress: {row: 0, col: 0},
@@ -32,7 +46,7 @@ export const INITIAL_STATE = {
 const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
 
     builder.addCase(setDataAction, (state, {payload}) => {
-        console.log('Set Data Action!')
+        console.log('Set Data Action!');
         const filledData = [];
 
         for (let i = 0; i < state.rowCount; i++) {
@@ -73,23 +87,23 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
 
     builder.addCase(activeCellValueModified, (state, {payload}) => {
         state.activeCellValue = payload;
-    })
+    });
 
     builder.addCase(setSelectedCells, ((state, {payload}) => {
         state.selectedCells = payload;
-    }))
+    }));
 
     builder.addCase(addSelectedCell, ((state, {payload}) => {
         state.selectedCells.push(payload);
-    }))
+    }));
 
     builder.addCase(onDragStart, (state, action) => {
         state.dragging = true;
-    })
+    });
 
     builder.addCase(onDragEnd, (state, action) => {
         state.dragging = false;
-    })
+    });
 
     builder.addCase(cellShiftClicked, (state, {payload}) => {
         const {
@@ -98,22 +112,32 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
         } = payload;
 
         if (state.activeCellAddress) {
-            let newSelection = [];
-            const fromRow = Math.min(state.activeCellAddress.row, targetRow);
-            const toRow = Math.max(state.activeCellAddress.row, targetRow);
-
-            const fromCol = Math.min(state.activeCellAddress.col, targetCol);
-            const toCol = Math.max(state.activeCellAddress.col, targetCol);
-
-            for (let i = fromRow; i <= toRow; i++) {
-                for (let j = fromCol; j <= toCol; j++) {
-                    newSelection.push({row: i, col: j});
-                }
-            }
-
-            state.selectedCells = newSelection;
+            const {
+                row: activeCellRow,
+                col: activeCellCol
+            } = state.activeCellAddress;
+            state.selectedCells = getSelectionFromRange(activeCellRow, activeCellCol, targetRow, targetCol);
         }
-    })
+    });
+
+    builder.addCase(onCellHovered, (state, {payload}) => {
+        if (!state.dragging) {
+            return;
+        }
+
+        const {
+            row: targetRow,
+            col: targetCol
+        } = payload;
+
+        if (state.activeCellAddress) {
+            const {
+                row: activeCellRow,
+                col: activeCellCol
+            } = state.activeCellAddress;
+            state.selectedCells = getSelectionFromRange(activeCellRow, activeCellCol, targetRow, targetCol);
+        }
+    });
 }));
 
 export default spreadsheetReducer;
