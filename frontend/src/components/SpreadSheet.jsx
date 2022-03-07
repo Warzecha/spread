@@ -6,6 +6,9 @@ import SpreadSheetTable from './SpreadSheet/SpreadSheetTable';
 import SpreadSheetToolbar from './SpreadSheet/SpreadSheetToolbar';
 import {hfInstance} from './SpreadSheet/hf';
 
+const ROWS = 30;
+const COLS = 20;
+
 const SpreadSheet = () => {
     const [fileName, setFileName] = useState('File name');
 
@@ -16,17 +19,27 @@ const SpreadSheet = () => {
     const classes = useStyles();
 
     useEffect(() => {
-        const tableData = [];
+        const tableData = [
+            [],
+            ['', 'Amount', 'Unit price', 'Tax %', 'Net Price', 'Gross price', 'Total tax',],
+            ['', 1, 5.40, 10, '=B3*C3', '=E3*(1+D3%)', '=E3*D3%',],
+        ];
 
-        for (let i = 0; i < 30; i++) {
+        const filledData = [];
+
+        for (let i = 0; i < ROWS; i++) {
             const row = [];
-            for (let j = 0; j < 15; j++) {
-                row.push('');
+            for (let j = 0; j < COLS; j++) {
+                if (tableData && tableData[i] && tableData[i][j]) {
+                    row.push(tableData[i][j]);
+                } else {
+                    row.push('');
+                }
             }
-            tableData.push(row);
+            filledData.push(row);
         }
 
-        hfInstance.setSheetContent(0, tableData);
+        hfInstance.setSheetContent(0, filledData);
         forceUpdate();
 
     }, []);

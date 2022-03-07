@@ -49,16 +49,12 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
         const filledData = [];
 
         for (let i = 0; i < state.rowCount; i++) {
-
             const row = [];
-
             for (let j = 0; j < state.columnCount; j++) {
                 if (payload && payload[i] && payload[i][j]) {
                     row.push(payload[i][j]);
                 } else {
-                    row.push({
-                        value: ''
-                    });
+                    row.push('');
                 }
             }
             filledData.push(row);

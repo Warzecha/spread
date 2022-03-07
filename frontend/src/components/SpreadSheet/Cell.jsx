@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {makeStyles} from '@mui/styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {cellsEqual, selectCellData} from './utils';
@@ -9,6 +9,7 @@ import {
     onDragStart
 } from '../../store/spreadsheetReducer';
 import EditCellComponent from './EditCellComponent';
+import {Tooltip} from '@mui/material';
 
 const Cell = props => {
     const {
@@ -38,12 +39,23 @@ const Cell = props => {
         });
     });
 
-    // const cellData = useSelector(selectCellData(rowIndex, columnIndex));
+    const cellContent = useSelector(() => hfInstance.getCellValue({sheet: 0, row: rowIndex, col: columnIndex}));
 
-    const cellValue = useSelector(() => hfInstance.getCellValue({sheet: 0, row: rowIndex, col: columnIndex}));
+    const {
+        value,
+        error
+    } = useMemo(() => {
+        if (typeof cellContent === 'object') {
+            return {
+                value: cellContent.value,
+                error: cellContent.message
+            };
+        } else {
+            return {value: cellContent};
+        }
+    }, [cellContent]);
+
     const cellFormula = useSelector(() => hfInstance.getCellFormula({sheet: 0, row: rowIndex, col: columnIndex}));
-
-    // const cellFormula = hfInstance.getCellFormula({sheet: 0, row: rowIndex, col: columnIndex});
 
     const dispatch = useDispatch();
 
@@ -88,6 +100,8 @@ const Cell = props => {
     //     console.debug("something changed!!!")
     // }, [])
 
+    const cellSpan = <span className={classes.cellValue}>{value}</span>;
+
     return (
         <td
             // ref={rootRef}
@@ -103,7 +117,8 @@ const Cell = props => {
                         columnIndex={columnIndex}
                         hfInstance={hfInstance}
                     /> :
-                    <span className={classes.cellValue}>{cellValue}</span>}
+                    (error ? <Tooltip title={error}>{cellSpan}</Tooltip> : cellSpan)
+                }
             </div>
 
         </td>
