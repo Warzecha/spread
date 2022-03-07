@@ -1,9 +1,11 @@
 import React, {useCallback} from 'react';
 import Row from './Row';
 import {makeStyles} from '@mui/styles';
-import {getColumnLabel} from './utils';
+import {computeCellValue, getColumnLabel, selectCellData} from './utils';
 import {useDispatch, useSelector} from 'react-redux';
-import {onDragStart} from '../../store/spreadsheetReducer';
+import {Parser as FormulaParser} from 'hot-formula-parser';
+import store from '../../store/store';
+import {formulaParser} from './formulaParser';
 
 const DEFAULT_COLUMN_WIDTH = 80;
 
@@ -11,6 +13,38 @@ const SpreadSheetTable = () => {
 
     const rowCount = useSelector(state => state.spreadsheet.rowCount);
     const columnCount = useSelector(state => state.spreadsheet.columnCount);
+
+
+    React.useEffect(() => {
+        formulaParser.on('callCellValue', (cellCoord, done) => {
+            console.debug('callCellValue: ', cellCoord)
+
+            let value;
+            try {
+                const state = store.getState();
+                const cellData = selectCellData(state, cellCoord.row.index, cellCoord.column.index);
+                value = computeCellValue(formulaParser, cellData);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                done(value);
+            }
+        });
+
+        // formulaParser.on("callRangeValue", (startCellCoord, endCellCoord, done) => {
+        //     const startPoint = transformCoordToPoint(startCellCoord);
+        //     const endPoint = transformCoordToPoint(endCellCoord);
+        //     const data = state.data;
+        //     let values;
+        //     try {
+        //         values = getCellRangeValue(formulaParser, data, startPoint, endPoint);
+        //     } catch (error) {
+        //         console.error(error);
+        //     } finally {
+        //         done(values);
+        //     }
+        // });
+    }, [formulaParser]);
 
     const classes = useStyles();
 
@@ -33,8 +67,9 @@ const SpreadSheetTable = () => {
                     Array.from({length: rowCount}, (_, i) => i)
                         .map((cells, rowIndex) => <Row
                             rowIndex={rowIndex}
-                            key={`row-${rowIndex}`}
                             columnCount={columnCount}
+                            formulaParser={formulaParser}
+                            key={`row-${rowIndex}`}
                         />)
                 }
                 </tbody>

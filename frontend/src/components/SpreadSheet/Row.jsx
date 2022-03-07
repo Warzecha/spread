@@ -2,7 +2,7 @@ import React from 'react';
 import {makeStyles} from '@mui/styles';
 import Cell from './Cell';
 
-const Row = ({rowIndex, columnCount}) => {
+const Row = ({rowIndex, columnCount, formulaParser}) => {
     const classes = useStyles();
 
     return (
@@ -14,6 +14,7 @@ const Row = ({rowIndex, columnCount}) => {
                     .map((_, columnIndex) => <Cell
                         rowIndex={rowIndex}
                         columnIndex={columnIndex}
+                        formulaParser={formulaParser}
                         columnWidth={80}
                         key={`cell-${rowIndex}-${columnIndex}`}
 

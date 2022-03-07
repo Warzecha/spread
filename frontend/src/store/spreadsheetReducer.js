@@ -1,4 +1,5 @@
 import {createAction, createReducer} from '@reduxjs/toolkit';
+import {isFormulaString} from '../components/SpreadSheet/utils';
 
 export const setDataAction = createAction('spreadsheet/setData');
 export const activateCell = createAction('spreadsheet/activateCell');
@@ -33,8 +34,8 @@ export const INITIAL_STATE = {
     // hasPasted: false,
     // cut: false,
     dragging: false,
-    rowCount: 100,
-    columnCount: 26,
+    rowCount: 30,
+    columnCount: 15,
     data: [],
     selectedCells: [],
     // copied: [],
@@ -50,12 +51,15 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
         const filledData = [];
 
         for (let i = 0; i < state.rowCount; i++) {
-
             const row = [];
-
             for (let j = 0; j < state.columnCount; j++) {
                 if (payload && payload[i] && payload[i][j]) {
-                    row.push(payload[i][j]);
+                    const {value} = payload[i][j];
+                    if (isFormulaString(value)) {
+                        row.push(payload[i][j]);
+                    } else {
+                        row.push({...payload[i][j], computedValue: value});
+                    }
                 } else {
                     row.push({
                         value: ''

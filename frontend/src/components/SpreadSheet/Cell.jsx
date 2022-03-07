@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {makeStyles} from '@mui/styles';
 import {useDispatch, useSelector} from 'react-redux';
-import {cellsEqual, selectCellData} from './utils';
+import {cellsEqual, computeCellValue, selectCellData} from './utils';
 import {
     activateCell,
     addSelectedCell,
@@ -15,6 +15,7 @@ const Cell = props => {
         rowIndex,
         columnIndex,
         columnWidth,
+        formulaParser
     } = props;
 
     const active = useSelector(state => {
@@ -22,8 +23,8 @@ const Cell = props => {
             activeCellAddress
         } = state.spreadsheet;
 
-        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex
-    })
+        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex;
+    });
 
     // const {selectedCells} = useSelector(state => state.spreadsheet);
     const selected = useSelector(state => {
@@ -31,15 +32,10 @@ const Cell = props => {
 
         return !!selectedCells.find(cell => cellsEqual(cell, {
             row: rowIndex, col: columnIndex
-        }))
+        }));
     });
 
-    const cellData = useSelector(selectCellData(rowIndex, columnIndex));
-
-    const {
-        value = '',
-        formula = ''
-    } = cellData || {};
+    const cellData = useSelector(state => selectCellData(state, rowIndex, columnIndex));
 
     const dispatch = useDispatch();
 
@@ -73,16 +69,22 @@ const Cell = props => {
     );
 
     const handleMouseOver = React.useCallback(() => {
-            dispatch(onCellHovered({row: rowIndex, col: columnIndex}))
+            dispatch(onCellHovered({row: rowIndex, col: columnIndex}));
         },
         [rowIndex, columnIndex, dispatch]
     );
 
     const classes = useStyles({selected, active, columnWidth});
 
-    // useEffect(() => {
-    //     console.debug("something changed!!!")
-    // }, [])
+    const computedValue = useMemo(() => {
+        console.info('Compute cell value')
+        return computeCellValue(formulaParser, cellData);
+    }, [formulaParser, cellData]);
+
+    // const {
+    //     value = '',
+    //     formula = ''
+    // } = cellData || {};
 
     return (
         <td
@@ -95,7 +97,7 @@ const Cell = props => {
         >
             <div className={classes.innerCell}>
                 {active ? <EditCellComponent/> :
-                    <span className={classes.cellValue}>{formula || value}</span>}
+                    <span className={classes.cellValue}>{computedValue}</span>}
             </div>
 
         </td>
