@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {makeStyles} from '@mui/styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {cellsEqual, selectCellData} from './utils';
@@ -9,9 +9,11 @@ import {
     onDragStart
 } from '../../store/spreadsheetReducer';
 import EditCellComponent from './EditCellComponent';
+import {Tooltip} from '@mui/material';
 
 const Cell = props => {
     const {
+        hfInstance,
         rowIndex,
         columnIndex,
         columnWidth,
@@ -22,24 +24,38 @@ const Cell = props => {
             activeCellAddress
         } = state.spreadsheet;
 
-        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex
-    })
+        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex;
+    });
 
-    // const {selectedCells} = useSelector(state => state.spreadsheet);
     const selected = useSelector(state => {
         const {selectedCells = []} = state.spreadsheet;
 
-        return !!selectedCells.find(cell => cellsEqual(cell, {
-            row: rowIndex, col: columnIndex
-        }))
+        return !!selectedCells.find(({row, col, fromRow, toRow, fromCol, toCol}) => {
+            if (row && col) {
+                return row === rowIndex && col === columnIndex;
+            } else {
+                return fromCol <= columnIndex && columnIndex <= toCol && fromRow <= rowIndex && rowIndex <= toRow;
+            }
+        });
     });
 
-    const cellData = useSelector(selectCellData(rowIndex, columnIndex));
+    const cellContent = useSelector(() => hfInstance.getCellValue({sheet: 0, row: rowIndex, col: columnIndex}));
 
     const {
-        value = '',
-        formula = ''
-    } = cellData || {};
+        value,
+        error
+    } = useMemo(() => {
+        if (typeof cellContent === 'object') {
+            return {
+                value: cellContent.value,
+                error: cellContent.message
+            };
+        } else {
+            return {value: cellContent};
+        }
+    }, [cellContent]);
+
+    const cellFormula = useSelector(() => hfInstance.getCellFormula({sheet: 0, row: rowIndex, col: columnIndex}));
 
     const dispatch = useDispatch();
 
@@ -73,7 +89,7 @@ const Cell = props => {
     );
 
     const handleMouseOver = React.useCallback(() => {
-            dispatch(onCellHovered({row: rowIndex, col: columnIndex}))
+            dispatch(onCellHovered({row: rowIndex, col: columnIndex}));
         },
         [rowIndex, columnIndex, dispatch]
     );
@@ -83,6 +99,8 @@ const Cell = props => {
     // useEffect(() => {
     //     console.debug("something changed!!!")
     // }, [])
+
+    const cellSpan = <span className={classes.cellValue}>{value}</span>;
 
     return (
         <td
@@ -94,8 +112,13 @@ const Cell = props => {
             tabIndex={0}
         >
             <div className={classes.innerCell}>
-                {active ? <EditCellComponent/> :
-                    <span className={classes.cellValue}>{formula || value}</span>}
+                {active ? <EditCellComponent
+                        rowIndex={rowIndex}
+                        columnIndex={columnIndex}
+                        hfInstance={hfInstance}
+                    /> :
+                    (error ? <Tooltip title={error}>{cellSpan}</Tooltip> : cellSpan)
+                }
             </div>
 
         </td>

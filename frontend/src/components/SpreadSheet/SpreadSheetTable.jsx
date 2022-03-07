@@ -4,13 +4,13 @@ import {makeStyles} from '@mui/styles';
 import {getColumnLabel} from './utils';
 import {useDispatch, useSelector} from 'react-redux';
 import {onDragStart} from '../../store/spreadsheetReducer';
+import {hfInstance} from './hf';
 
 const DEFAULT_COLUMN_WIDTH = 80;
 
 const SpreadSheetTable = () => {
 
-    const rowCount = useSelector(state => state.spreadsheet.rowCount);
-    const columnCount = useSelector(state => state.spreadsheet.columnCount);
+    const {height, width} = hfInstance.getSheetDimensions(0);
 
     const classes = useStyles();
 
@@ -21,20 +21,21 @@ const SpreadSheetTable = () => {
                 <thead>
                 <tr className={classes.headerRow}>
                     <th className={classes.columnHeader}/>
-                    {Array.from({length: columnCount}, (_, i) => i)
-                        .map((_, i) => <th key={`column-${i}`}
-                                           className={classes.columnHeader}>{getColumnLabel(i)}</th>)}
+                    {Array.from({length: width}, (_, i) => i)
+                        .map(i => <th key={`column-${i}`}
+                                      className={classes.columnHeader}>{getColumnLabel(i)}</th>)}
                 </tr>
 
                 </thead>
 
                 <tbody className={classes.tableBody}>
                 {
-                    Array.from({length: rowCount}, (_, i) => i)
-                        .map((cells, rowIndex) => <Row
+                    Array.from({length: height}, (_, i) => i)
+                        .map(rowIndex => <Row
+                            hfInstance={hfInstance}
                             rowIndex={rowIndex}
+                            columnCount={width}
                             key={`row-${rowIndex}`}
-                            columnCount={columnCount}
                         />)
                 }
                 </tbody>

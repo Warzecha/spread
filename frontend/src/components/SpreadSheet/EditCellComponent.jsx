@@ -2,7 +2,14 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {InputBase} from '@mui/material';
 import {useDispatch, useSelector} from 'react-redux';
 import {activeCellValueModified} from '../../store/spreadsheetReducer';
-import {makeStyles} from '@mui/styles';
+import {makeStyles, styled} from '@mui/styles';
+
+const CustomInput = styled(InputBase)({
+    '& input': {
+        // backgroundColor: 'green',
+        padding: 0
+    },
+});
 
 const EditCellComponent = () => {
     const {
@@ -25,7 +32,7 @@ const EditCellComponent = () => {
 
     return (
         <div>
-            <InputBase value={activeCellValue}
+            <CustomInput value={activeCellValue}
                        onChange={e => setActiveCellValue(e.target.value)}
                        className={classes.cellInput}
                        ref={inputRef}
@@ -37,12 +44,13 @@ const EditCellComponent = () => {
 const useStyles = makeStyles({
     cellInput: {
         width: '100%',
+        height: '100%',
         padding: 0,
         borderWidth: 0,
         border: 'none',
-        outline: 'none',
+        outline: 'none'
         // fontSize: 14,
-        height: 15
+        // height: 15
     }
 });
 

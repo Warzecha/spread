@@ -2,7 +2,7 @@ import React from 'react';
 import {makeStyles} from '@mui/styles';
 import Cell from './Cell';
 
-const Row = ({rowIndex, columnCount}) => {
+const Row = ({hfInstance, rowIndex, columnCount}) => {
     const classes = useStyles();
 
     return (
@@ -12,6 +12,7 @@ const Row = ({rowIndex, columnCount}) => {
             {
                 Array.from({length: columnCount}, (_, i) => i)
                     .map((_, columnIndex) => <Cell
+                        hfInstance={hfInstance}
                         rowIndex={rowIndex}
                         columnIndex={columnIndex}
                         columnWidth={80}
