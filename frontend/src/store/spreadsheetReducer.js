@@ -1,10 +1,10 @@
 import {createAction, createReducer} from '@reduxjs/toolkit';
+import {hfInstance} from '../components/SpreadSheet/hf';
 
 export const setDataAction = createAction('spreadsheet/setData');
 export const activateCell = createAction('spreadsheet/activateCell');
 export const activeCellValueModified = createAction('spreadsheet/activeCellValueModified');
 
-export const setSelectedCells = createAction('spreadsheet/setSelectedCells');
 export const addSelectedCell = createAction('spreadsheet/addSelectedCell');
 
 export const onDragStart = createAction('spreadsheet/onDragStart');
@@ -13,16 +13,15 @@ export const cellShiftClicked = createAction('spreadsheet/cellShiftClicked');
 export const onCellHovered = createAction('spreadsheet/onCellHovered');
 
 const getSelectionFromRange = (startRow, startCol, targetRow, targetCol) => {
-    let newSelection = [];
-    const [fromRow, toRow] = [startRow, targetRow].sort();
-    const [fromCol, toCol] = [startCol, targetCol].sort();
-    for (let i = fromRow; i <= toRow; i++) {
-        for (let j = fromCol; j <= toCol; j++) {
-            newSelection.push({row: i, col: j});
-        }
-    }
+    const [fromRow, toRow] = [startRow, targetRow].sort((a, b) => a - b);
+    const [fromCol, toCol] = [startCol, targetCol].sort((a, b) => a - b);
 
-    return newSelection;
+    return [{
+        fromRow,
+        toRow,
+        fromCol,
+        toCol
+    }];
 };
 
 export const INITIAL_STATE = {
@@ -69,29 +68,27 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
     });
 
     builder.addCase(activateCell, (state, {payload}) => {
-        // TODO: Set active cell value.
-        if (state.activeCellAddress) {
-            const {row: prevRow, col: prevCol} = state.activeCellAddress;
-            state.data[prevRow][prevCol].value = state.activeCellValue;
-        }
-
         const {
             row,
             col
-        } = payload;
+        } = payload || {};
+
+        if (state.activeCellAddress) {
+            const {row: prevRow, col: prevCol} = state.activeCellAddress;
+            hfInstance.setCellContents({sheet: 0, row: prevRow, col: prevCol}, [[state.activeCellValue]]);
+        }
 
         state.activeCellAddress = payload;
-        state.activeCellValue = state.data[row][col].value;
+
+        const cellFormula = hfInstance.getCellFormula({sheet: 0, col, row});
+        const cellValue = hfInstance.getCellValue({sheet: 0, col, row});
+        state.activeCellValue = cellFormula || cellValue;
         state.selectedCells = [];
     });
 
     builder.addCase(activeCellValueModified, (state, {payload}) => {
         state.activeCellValue = payload;
     });
-
-    builder.addCase(setSelectedCells, ((state, {payload}) => {
-        state.selectedCells = payload;
-    }));
 
     builder.addCase(addSelectedCell, ((state, {payload}) => {
         state.selectedCells.push(payload);

@@ -12,6 +12,7 @@ import EditCellComponent from './EditCellComponent';
 
 const Cell = props => {
     const {
+        hfInstance,
         rowIndex,
         columnIndex,
         columnWidth,
@@ -22,24 +23,27 @@ const Cell = props => {
             activeCellAddress
         } = state.spreadsheet;
 
-        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex
-    })
+        return activeCellAddress && activeCellAddress.row === rowIndex && activeCellAddress.col === columnIndex;
+    });
 
-    // const {selectedCells} = useSelector(state => state.spreadsheet);
     const selected = useSelector(state => {
         const {selectedCells = []} = state.spreadsheet;
 
-        return !!selectedCells.find(cell => cellsEqual(cell, {
-            row: rowIndex, col: columnIndex
-        }))
+        return !!selectedCells.find(({row, col, fromRow, toRow, fromCol, toCol}) => {
+            if (row && col) {
+                return row === rowIndex && col === columnIndex;
+            } else {
+                return fromCol <= columnIndex && columnIndex <= toCol && fromRow <= rowIndex && rowIndex <= toRow;
+            }
+        });
     });
 
-    const cellData = useSelector(selectCellData(rowIndex, columnIndex));
+    // const cellData = useSelector(selectCellData(rowIndex, columnIndex));
 
-    const {
-        value = '',
-        formula = ''
-    } = cellData || {};
+    const cellValue = useSelector(() => hfInstance.getCellValue({sheet: 0, row: rowIndex, col: columnIndex}));
+    const cellFormula = useSelector(() => hfInstance.getCellFormula({sheet: 0, row: rowIndex, col: columnIndex}));
+
+    // const cellFormula = hfInstance.getCellFormula({sheet: 0, row: rowIndex, col: columnIndex});
 
     const dispatch = useDispatch();
 
@@ -73,7 +77,7 @@ const Cell = props => {
     );
 
     const handleMouseOver = React.useCallback(() => {
-            dispatch(onCellHovered({row: rowIndex, col: columnIndex}))
+            dispatch(onCellHovered({row: rowIndex, col: columnIndex}));
         },
         [rowIndex, columnIndex, dispatch]
     );
@@ -94,8 +98,12 @@ const Cell = props => {
             tabIndex={0}
         >
             <div className={classes.innerCell}>
-                {active ? <EditCellComponent/> :
-                    <span className={classes.cellValue}>{formula || value}</span>}
+                {active ? <EditCellComponent
+                        rowIndex={rowIndex}
+                        columnIndex={columnIndex}
+                        hfInstance={hfInstance}
+                    /> :
+                    <span className={classes.cellValue}>{cellValue}</span>}
             </div>
 
         </td>

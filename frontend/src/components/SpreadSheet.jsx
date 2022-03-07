@@ -1,37 +1,33 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useReducer, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {setDataAction} from '../store/spreadsheetReducer';
 import {makeStyles} from '@mui/styles';
 import SpreadSheetTable from './SpreadSheet/SpreadSheetTable';
 import SpreadSheetToolbar from './SpreadSheet/SpreadSheetToolbar';
+import {hfInstance} from './SpreadSheet/hf';
 
 const SpreadSheet = () => {
     const [fileName, setFileName] = useState('File name');
 
-    // const {
-    //     rowCount,
-    //     columnCount
-    // } = useSelector(state => state.spreadsheet);
-
     const dispatch = useDispatch();
+
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
 
     const classes = useStyles();
 
     useEffect(() => {
         const tableData = [];
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 30; i++) {
             const row = [];
-            for (let j = 0; j < 10; j++) {
-                row.push({
-                    value: j
-                });
+            for (let j = 0; j < 15; j++) {
+                row.push('');
             }
             tableData.push(row);
         }
 
-        dispatch(setDataAction(tableData));
-
+        hfInstance.setSheetContent(0, tableData);
+        forceUpdate();
 
     }, []);
 
