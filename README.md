@@ -1,4 +1,4 @@
-# spread
+# Spread
 Simple spreadsheet app
 
 [Try Demo](https://warzecha.github.io/spread/)
