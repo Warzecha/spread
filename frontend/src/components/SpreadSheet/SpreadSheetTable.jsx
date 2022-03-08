@@ -2,8 +2,6 @@ import React, {useCallback} from 'react';
 import Row from './Row';
 import {makeStyles} from '@mui/styles';
 import {getColumnLabel} from './utils';
-import {useDispatch, useSelector} from 'react-redux';
-import {onDragStart} from '../../store/spreadsheetReducer';
 import {hfInstance} from './hf';
 
 const DEFAULT_COLUMN_WIDTH = 80;

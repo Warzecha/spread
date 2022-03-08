@@ -6,7 +6,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import {getColumnLabel} from './utils';
 import {useDispatch, useSelector} from 'react-redux';
-import {activeCellValueModified} from '../../store/spreadsheetReducer';
+import {activeCellValueModified, redoAction, undoAction} from '../../store/spreadsheetReducer';
 
 const SpreadSheetToolbar = (props) => {
     const {
@@ -25,6 +25,14 @@ const SpreadSheetToolbar = (props) => {
 
     const setActiveCellValue = useCallback((newValue) => {
         dispatch(activeCellValueModified(newValue));
+    }, [dispatch]);
+
+    const handleUndo = useCallback(() => {
+        dispatch(undoAction());
+    }, [dispatch]);
+
+    const handleRedo = useCallback(() => {
+        dispatch(redoAction());
     }, [dispatch]);
 
     return (
@@ -53,9 +61,9 @@ const SpreadSheetToolbar = (props) => {
 
                 <DropDownMenu label={'Edit'}
                               options={[{
-                                  label: 'Undo', handler: () => alert('Undo!')
+                                  label: 'Undo', handler: handleUndo
                               }, {
-                                  label: 'Redo', handler: () => alert('Redo!')
+                                  label: 'Redo', handler: handleRedo
                               }, {
                                   label: 'Copy', handler: () => alert('Copy!')
                               }]}
@@ -77,10 +85,10 @@ const SpreadSheetToolbar = (props) => {
 
             <div className={classes.toolsRibbon}>
 
-                <IconButton size={'small'}>
+                <IconButton size={'small'} onClick={handleUndo}>
                     <UndoIcon/>
                 </IconButton>
-                <IconButton size={'small'}>
+                <IconButton size={'small'} onClick={handleRedo}>
                     <RedoIcon/>
                 </IconButton>
 

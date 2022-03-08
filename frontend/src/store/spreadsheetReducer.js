@@ -12,6 +12,9 @@ export const onDragEnd = createAction('spreadsheet/onDragEnd');
 export const cellShiftClicked = createAction('spreadsheet/cellShiftClicked');
 export const onCellHovered = createAction('spreadsheet/onCellHovered');
 
+export const undoAction = createAction('spreadsheet/undoAction');
+export const redoAction = createAction('spreadsheet/redoAction');
+
 const getSelectionFromRange = (startRow, startCol, targetRow, targetCol) => {
     const [fromRow, toRow] = [startRow, targetRow].sort((a, b) => a - b);
     const [fromCol, toCol] = [startCol, targetCol].sort((a, b) => a - b);
@@ -37,8 +40,8 @@ export const INITIAL_STATE = {
     data: [],
     selectedCells: [],
     // copied: [],
-    // bindings: PointMap.from([]),
-    // lastCommit: null,
+
+    refresher: {}
 };
 
 
@@ -131,6 +134,26 @@ const spreadsheetReducer = createReducer(INITIAL_STATE, (builder => {
             state.selectedCells = getSelectionFromRange(activeCellRow, activeCellCol, targetRow, targetCol);
         }
     });
+
+    builder.addCase(undoAction, (state) => {
+        if (!hfInstance.isThereSomethingToUndo()) {
+            console.log("There's nothing to undo.");
+            return;
+        }
+
+        hfInstance.undo();
+        state.refresher = {};
+    })
+
+    builder.addCase(redoAction, (state) => {
+        if (!hfInstance.isThereSomethingToRedo()) {
+            console.log("There's nothing to redo.");
+            return;
+        }
+
+        hfInstance.redo();
+        state.refresher = {};
+    })
 }));
 
 export default spreadsheetReducer;
